@@ -1,7 +1,11 @@
 from data_loader import load_dataset
 from data_quality import analyze_data_quality
 from statistical_analysis import generate_statistics
-from eda import generate_histograms
+from eda import (
+    generate_histograms,
+    generate_scatter_plot,
+    generate_correlation_matrix
+)
 
 
 dataset = load_dataset("data/student_performance.csv")
@@ -53,3 +57,10 @@ if dataset is not None:
 
     # EDA
     generate_histograms(dataset)
+
+    generate_scatter_plot(
+    dataset,
+    "study_hours",
+    "final_score"
+)
+    generate_correlation_matrix(dataset)
