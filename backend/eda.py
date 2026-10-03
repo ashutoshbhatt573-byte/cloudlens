@@ -2,14 +2,53 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def generate_histograms(dataset, output_folder="eda_outputs"):
+def identify_columns(dataset):
     """
-    Generate histograms for all numerical columns.
+    Identify numerical, categorical, and identifier columns.
     """
+
+    identifier_columns = []
+
+    for column in dataset.columns:
+
+        column_name = column.lower()
+
+        if (
+            column_name == "id"
+            or column_name.endswith("_id")
+            or column_name.startswith("id_")
+        ):
+            identifier_columns.append(column)
 
     numerical_columns = dataset.select_dtypes(
         include="number"
-    ).columns
+    ).columns.tolist()
+
+    categorical_columns = dataset.select_dtypes(
+        exclude="number"
+    ).columns.tolist()
+
+    numerical_features = [
+        column
+        for column in numerical_columns
+        if column not in identifier_columns
+    ]
+
+    return {
+        "identifier_columns": identifier_columns,
+        "numerical_features": numerical_features,
+        "categorical_columns": categorical_columns,
+    }
+
+
+def generate_histograms(dataset, output_folder="eda_outputs"):
+    """
+    Generate histograms for numerical features.
+    """
+
+    column_info = identify_columns(dataset)
+
+    numerical_columns = column_info["numerical_features"]
 
     for column in numerical_columns:
 
@@ -73,14 +112,14 @@ def generate_correlation_matrix(
 ):
     """
     Generate a correlation matrix and heatmap
-    for numerical columns.
+    for numerical features.
     """
 
-    numerical_data = dataset.select_dtypes(
-        include="number"
-    )
+    column_info = identify_columns(dataset)
 
-    correlation_matrix = numerical_data.corr()
+    numerical_features = column_info["numerical_features"]
+
+    correlation_matrix = dataset[numerical_features].corr()
 
     print("\n===== CORRELATION MATRIX =====")
     print(correlation_matrix)
@@ -118,3 +157,73 @@ def generate_correlation_matrix(
     plt.close()
 
     print("Correlation matrix generated successfully.")
+
+def generate_box_plots(
+    dataset,
+    output_folder="eda_outputs"
+):
+    """
+    Generate box plots for numerical features.
+    """
+
+    column_info = identify_columns(dataset)
+
+    numerical_columns = column_info["numerical_features"]
+
+    for column in numerical_columns:
+
+        plt.figure(figsize=(8, 5))
+
+        plt.boxplot(
+            dataset[column].dropna()
+        )
+
+        plt.title(f"Box Plot of {column}")
+        plt.ylabel(column)
+
+        plt.tight_layout()
+
+        plt.savefig(
+            f"{output_folder}/{column}_boxplot.png"
+        )
+
+        plt.close()
+
+    print("Box plots generated successfully.")
+
+def generate_eda_insights(dataset):
+    """
+    Generate basic insights from numerical features.
+    """
+
+    column_info = identify_columns(dataset)
+
+    numerical_features = column_info["numerical_features"]
+
+    correlation_matrix = dataset[numerical_features].corr()
+
+    print("\n===== CLOUDLENS EDA INSIGHTS =====")
+
+    print("\nStrong Correlations:")
+
+    found_correlation = False
+
+    for i in range(len(correlation_matrix.columns)):
+        for j in range(i + 1, len(correlation_matrix.columns)):
+
+            column_1 = correlation_matrix.columns[i]
+            column_2 = correlation_matrix.columns[j]
+
+            correlation = correlation_matrix.iloc[i, j]
+
+            if abs(correlation) >= 0.7:
+
+                print(
+                    f"- {column_1} and {column_2}: "
+                    f"correlation = {correlation:.2f}"
+                )
+
+                found_correlation = True
+
+    if not found_correlation:
+        print("- No strong correlations detected.")

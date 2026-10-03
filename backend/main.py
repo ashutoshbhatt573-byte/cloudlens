@@ -4,7 +4,9 @@ from statistical_analysis import generate_statistics
 from eda import (
     generate_histograms,
     generate_scatter_plot,
-    generate_correlation_matrix
+    generate_correlation_matrix,
+    generate_box_plots,
+    generate_eda_insights
 )
 
 
@@ -46,14 +48,7 @@ if dataset is not None:
         print(f"\n{statistic_name}:")
         print(values)
 
-        # Statistical Analysis
-    statistics = generate_statistics(dataset)
-
-    print("\n===== CLOUDLENS STATISTICAL ANALYSIS =====")
-
-    for statistic_name, values in statistics.items():
-        print(f"\n{statistic_name}:")
-        print(values)
+       
 
     # EDA
     generate_histograms(dataset)
@@ -64,3 +59,5 @@ if dataset is not None:
     "final_score"
 )
     generate_correlation_matrix(dataset)
+    generate_box_plots(dataset)
+    generate_eda_insights(dataset)
